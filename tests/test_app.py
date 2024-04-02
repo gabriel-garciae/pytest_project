@@ -1,18 +1,24 @@
 from selenium import webdriver
-from selenium.common.exceptions import TimeoutException
 from time import sleep
+import pytest
+import subprocess
 
+@pytest.fixture
+def driver():
+    #Inicializar o streamlit em background
+    process = subprocess.Popen(["streamlit", "run", "src/app.py"])
 
-#Código instância o webdriver, e verifica se consegue acessar a URL do local host
-driver = webdriver.Chrome()
+    #Iniciar o web driver com o chrome
+    #yeld serve para o processo ficar rodando sem parar, se passar o return ele finaliza a função
+    driver = webdriver.Chrome()
+    driver.set_page_load_timeout(5)
+    yield driver
 
-driver.set_page_load_timeout(5)
+    #Fechar o webdrive e o streamlit após o teste
+    driver.quit()
+    process.kill()
 
-try:
+def test_app_opens(driver):
+    #Verificar se a pagina abre
     driver.get("http://localhost:8501")
     sleep(5)
-    print("Acessou a página com sucesso")
-except TimeoutException:
-    print("Tempo de carregamento da página excedeu o limite")
-finally:
-    driver.quit()
